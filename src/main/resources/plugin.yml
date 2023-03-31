@@ -1,0 +1,4 @@
+name: MC-stock-market
+version: '${project.version}'
+main: de.nikho2000.mcstockmarket.MC_stock_market
+api-version: 1.19
