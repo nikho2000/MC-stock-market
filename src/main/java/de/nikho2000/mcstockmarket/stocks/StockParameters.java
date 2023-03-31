@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Random;
 
 public class StockParameters {
@@ -19,25 +20,26 @@ public class StockParameters {
         * array would give us the same function as above.
      */
 
-    private BigDecimal targetPrice;
+    private double targetPrice;
     private int Steps;
     private int currentStep = 1;
-    private double noise;
-    private BigDecimal[] priceHistory;
+    private double yNoise;
+    private double[] priceHistory;
     private Random random = new Random();
 
-    public StockParameters(BigDecimal price, BigDecimal targetPrice, int steps, double noise) {
-        this.targetPrice = targetPrice.setScale(5, BigDecimal.ROUND_HALF_UP);
+    public StockParameters(double price, double targetPrice, int steps, double noise) {
+        this.targetPrice = targetPrice;
         Steps = steps+1;
-        this.noise = noise;
-        priceHistory = new BigDecimal[steps];
+        this.yNoise = noise; // + ((double) Steps / 1000.0);
+        priceHistory = new double[steps];
         priceHistory[0] = price;
     }
 
-    public void reset(BigDecimal price, BigDecimal targetPrice, double noise) {
-        this.targetPrice = targetPrice.setScale(5, BigDecimal.ROUND_HALF_UP);
-        this.noise = noise;
-        priceHistory = new BigDecimal[Steps];
+    public void reset(double price, double targetPrice, double noise) {
+        this.targetPrice = targetPrice;
+        this.yNoise = noise;
+        currentStep = 1;
+        priceHistory = new double[Steps];
         priceHistory[0] = price;
     }
 
@@ -46,19 +48,18 @@ public class StockParameters {
             return;
         }
 
-        BigDecimal yDiff = targetPrice.subtract(priceHistory[Steps - 1]);
-        BigDecimal yStep = yDiff.divide(BigDecimal.valueOf(Steps - currentStep), 5, BigDecimal.ROUND_HALF_UP);
-        BigDecimal yRand = BigDecimal.valueOf(random.nextDouble()).multiply(BigDecimal.valueOf(2*noise-noise));
-        priceHistory[currentStep] = priceHistory[currentStep - 1].add(yStep).add(yRand);
-        currentStep++;
+        double yDiff = targetPrice - priceHistory[currentStep-1];
+        double yStep = yDiff / (Steps-1 - currentStep);
+        double yRand = random.nextDouble() * 2 * yNoise - yNoise;
+        priceHistory[currentStep] = priceHistory[currentStep-1] + yStep + yRand;
         for (Player all : Bukkit.getOnlinePlayers()) {
-            all.sendMessage("New price: " + priceHistory[currentStep - 1]);
+            all.sendMessage("New price: " + getCurrentPrice() + " Iteration: " + currentStep);
         }
-
+        currentStep++;
     }
 
     public BigDecimal getCurrentPrice() {
-        return priceHistory[currentStep - 1];
+        return BigDecimal.valueOf(priceHistory[currentStep-1]).setScale(5, RoundingMode.HALF_UP);
     }
 
 }
