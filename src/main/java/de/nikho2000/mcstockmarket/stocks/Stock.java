@@ -1,7 +1,9 @@
 package de.nikho2000.mcstockmarket.stocks;
 
 public enum Stock {
-
+    /**
+     * A lot of Stocks that are currently hardcoded. This will maybe be changed in the future.
+     */
     CRAFTSOTF("Craftsotf Inc.", "CSI", StockType.SHARE),
     DIAMONDDIGGERS("Diamond Diggers Inc.", "DDI", StockType.SHARE),
     REDSTONEROBOTICS("Redstone Robotics Ltd.", "RRL", StockType.SHARE),

@@ -18,7 +18,12 @@ public class StockParameters {
     private final Random random = new Random();
 
     /**
-        * @param noise is a value between 0 and 1, which is multiplied with the random value
+     * The StockParameters class is used to calculate a stock price.
+     * It uses a linear function and plays with the noise to make the stock price more realistic.
+     * @param price is the starting price of the stock
+     * @param targetPrice is the price the stock should reach
+     * @param steps is the amount of steps the stock should take to reach the target price
+     * @param noise is a value between 0 and 1, which is multiplied with the random value
      *              1 means that the random value of the noice doesn't get changed.
      *              0 means that the random value of the noice is 0.
      */

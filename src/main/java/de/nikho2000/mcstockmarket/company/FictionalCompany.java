@@ -1,5 +1,6 @@
-package de.nikho2000.mcstockmarket;
+package de.nikho2000.mcstockmarket.company;
 
+import de.nikho2000.mcstockmarket.Calculations;
 import de.nikho2000.mcstockmarket.stocks.Stock;
 
 import java.math.BigDecimal;
@@ -37,19 +38,17 @@ public class FictionalCompany {
         return stock;
     }
 
-    private synchronized double increaseDecrease() {
-        BigDecimal term1 = BigDecimal.valueOf(3).subtract(BigDecimal.valueOf(Math.pow(Math.E, -intensity* getProductsInPercent())));
-        BigDecimal term2 = BigDecimal.valueOf(3).add(BigDecimal.valueOf(Math.pow(Math.E, -intensity* getProductsInPercent())));
-        BigDecimal term3 = BigDecimal.valueOf(3).subtract(BigDecimal.valueOf(Math.pow(Math.E, -intensity* (100-getProductsInPercent()))));
-        BigDecimal term4 = BigDecimal.valueOf(3).add(BigDecimal.valueOf(Math.pow(Math.E, -intensity* (100-getProductsInPercent()))));
-        BigDecimal x = term1.divide(term2, 5, RoundingMode.HALF_UP).subtract(term3.divide(term4, 5, RoundingMode.HALF_UP));
-        return x.doubleValue();
-    }
-
+    /**
+     * This method is used to randomly buy or sell products of the fictional company.
+     * This works by calculating a random value between -0.5 and 0.5, if the value is positive the company will buy products,
+     * if the value is negative the company will sell products. Using the increaseDecreaseChance() method the chance of buying or selling
+     * gets increased or decreased to prevent an overflow of the products.
+     * @return the change in net worth of the fictional company
+     */
     public synchronized double buySellRandom() {
         Random random = new Random();
         int amount = random.nextInt(1,maxProductChange);
-        double x = increaseDecrease();
+        double x = Calculations.increaseDecreaseChance(intensity, getProductsInPercent());
         double buySell = random.nextDouble(-0.5 + x,0.5 + x);
         if (buySell > 0) {
             buyProducts(amount);
@@ -62,6 +61,11 @@ public class FictionalCompany {
         return change;
     }
 
+    /**
+     * This method is used to buy products of the fictional company.
+     * It will increase the net value of the fictional company and the price of the remaining products and related shares.
+     * @param amount the amount of products to buy
+     */
     public synchronized void buyProducts(int amount) {
         if (amount > products) {
             return;
@@ -70,7 +74,7 @@ public class FictionalCompany {
         BigDecimal x = percentageWorthOfProducts.pow(amount).setScale(200, RoundingMode.HALF_DOWN);
         netWorth = netWorth.multiply(x).setScale(2, RoundingMode.HALF_DOWN);
         worthOfProducts = worthOfProducts.multiply(x).setScale(2, RoundingMode.HALF_DOWN);
-        netWorthChanged = netWorthChanged.multiply(x).setScale(2, RoundingMode.HALF_DOWN);
+        netWorthChanged = netWorthChanged.multiply(x).setScale(200, RoundingMode.HALF_DOWN);
     }
 
     public synchronized void sellProducts(int amount) {

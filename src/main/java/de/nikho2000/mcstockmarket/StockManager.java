@@ -1,5 +1,6 @@
 package de.nikho2000.mcstockmarket;
 
+import de.nikho2000.mcstockmarket.company.FictionalCompany;
 import de.nikho2000.mcstockmarket.stocks.Stock;
 import de.nikho2000.mcstockmarket.stocks.StockParameters;
 import org.bukkit.Bukkit;
@@ -23,13 +24,16 @@ public class StockManager {
     }
 
     private void loadStocks() {
-        stockPrices.put(Stock.CREEPERIUM, new StockParameters(50, 65, 60, 1));
+        stockPrices.put(Stock.CREEPERIUM, new StockParameters(50, 65, 30, 1));
     }
 
     private void loadFictionalCompanies() {
-        fictionalCompanies.put(Stock.CREEPERIUM, new FictionalCompany(Stock.CREEPERIUM, 10000, 1000000, 20, 0.2, 30));
+        fictionalCompanies.put(Stock.CREEPERIUM, new FictionalCompany(Stock.CREEPERIUM, 10000, 100000, 20, 0.2, 80));
     }
 
+    /**
+     * Calculates every two seconds a new Price for every Stock
+     */
     private void calucateStockPrices() {
         stockPrice = Bukkit.getScheduler().scheduleAsyncRepeatingTask(MC_stock_market.getInstance(), () -> {
             for (Stock stock : stockPrices.keySet()) {
@@ -39,6 +43,9 @@ public class StockManager {
         }, 0L, 40L);
     }
 
+    /**
+     * Calculates every minute a new Percentage goal for every Stock, that the Stock reaches within the next minute
+     */
     private void calculateStockChange() {
         stockChange = Bukkit.getScheduler().scheduleAsyncRepeatingTask(MC_stock_market.getInstance(), () -> {
             for (Stock stock : stockPrices.keySet()) {
@@ -50,7 +57,7 @@ public class StockManager {
                 stockParameters.reset(stockParameters.getCurrentPrice().doubleValue(),
                         stockParameters.getCurrentPrice().doubleValue() * fictionalCompany.buySellRandom(), noice*chance);
             }
-        }, 2*20*60L, 2*20*60L);
+        }, 20*60L, 20*60L);
     }
 
     public BigDecimal getStockPrice(Stock stock) {
