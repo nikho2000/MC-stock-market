@@ -1,15 +1,12 @@
-package de.nikho2000.mcstockmarket.company;
+package de.nikho2000.mcstockmarket.stocks;
 
-import de.nikho2000.mcstockmarket.Calculations;
-import de.nikho2000.mcstockmarket.stocks.Stock;
+import de.nikho2000.mcstockmarket.stocks.StockEnum;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Random;
 
 public class FictionalCompany {
-
-    private final Stock stock;
     private final int maxProducts;
     private int products;
     private final double intensity;
@@ -23,8 +20,7 @@ public class FictionalCompany {
         * @param intensity: min 0.1, max double.MAX_VALUE, but higher values will simply result in more random behavior
         * values between 0.1 and 1 are recommended
      */
-    public FictionalCompany(Stock stock, int Products, double netWorth, double productStartPrice, double intensity, int maxProductChange) {
-        this.stock = stock;
+    public FictionalCompany(int Products, double netWorth, double productStartPrice, double intensity, int maxProductChange) {
         this.maxProducts = Products;
         this.products = Products;
         this.netWorth = BigDecimal.valueOf(netWorth);
@@ -34,8 +30,24 @@ public class FictionalCompany {
         this.maxProductChange = maxProductChange;
     }
 
-    public synchronized Stock getStock() {
-        return stock;
+    // Todo: Experiment with the Sinus hyperbolicus function -> looks kind of similar
+    /**
+     * This method is used to calculate a value between -0.5 and 0.5, based on the current amount of products in Percent.
+     * It is calculated by following function: <p>
+     * ((3 - e^(-intensity * x)) / (3 + e^(-intensity * x))) - ((3 - e^(-intensity * (100-x))) / (3 + e^(-intensity * (100-x))))
+     * @return 0.5 with 100% Product left and -0.5 0% Products left.
+     * Depending on the intensity the return value will be higher or lower for the Product amounts between 100% and 0%
+     */
+    private synchronized double increaseDecreaseChance(double intensity, int getProductsInPercent) {
+        BigDecimal term1 = BigDecimal.valueOf(Math.pow(Math.E, -intensity * getProductsInPercent));
+        BigDecimal term2 = BigDecimal.valueOf(3).subtract(term1);
+        BigDecimal term3 = BigDecimal.valueOf(3).add(term1);
+        BigDecimal term4 = BigDecimal.valueOf(Math.pow(Math.E, -intensity* (100-getProductsInPercent)));
+        BigDecimal term5 = BigDecimal.valueOf(3).subtract(term4);
+        BigDecimal term6 = BigDecimal.valueOf(3).add(term4);
+        // term2 / term3 - term5 / term6
+        BigDecimal x = term2.divide(term3, 5, RoundingMode.HALF_UP).subtract(term5.divide(term6, 5, RoundingMode.HALF_UP));
+        return x.doubleValue();
     }
 
     /**
@@ -48,7 +60,7 @@ public class FictionalCompany {
     public synchronized double buySellRandom() {
         Random random = new Random();
         int amount = random.nextInt(1,maxProductChange);
-        double x = Calculations.increaseDecreaseChance(intensity, getProductsInPercent());
+        double x = increaseDecreaseChance(intensity, getProductsInPercent());
         double buySell = random.nextDouble(-0.5 + x,0.5 + x);
         if (buySell > 0) {
             buyProducts(amount);

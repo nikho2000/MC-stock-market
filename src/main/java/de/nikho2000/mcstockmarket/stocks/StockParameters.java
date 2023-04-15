@@ -5,17 +5,28 @@ import org.bukkit.entity.Player;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class StockParameters {
-
     private double targetPrice;
+    private double currentPrice;
     private final int Steps;
     private int currentStep = 1;
     private final double noise;
     private double yNoise = 1;
-    private double[] priceHistory;
-    private final Random random = new Random();
+    private List<Double> priceHistory = new ArrayList<Double>();
+    private final transient Random random = new Random();
+
+    /**
+     * The StockParameters class is used to calculate a stock price.
+     * It uses a linear function and plays with the noise to make the stock price more realistic.
+     * @param price is the starting price of the stock
+     */
+    public StockParameters(double price) {
+        this(price, price+5, 30, 1);
+    }
 
     /**
      * The StockParameters class is used to calculate a stock price.
@@ -31,17 +42,15 @@ public class StockParameters {
         this.targetPrice = targetPrice;
         Steps = steps+1; // +1 because in the last iteration it would be divided by 0
         this.noise = noise;
-        priceHistory = new double[this.Steps];
-        priceHistory[0] = price;
-        System.out.println("Array length: " + priceHistory.length);
+        priceHistory.add(price);
     }
 
-    public void reset(double price, double targetPrice, double noise) {
+    public void changeParameters(double targetPrice, double noise) {
         this.targetPrice = targetPrice;
         this.yNoise = noise;
         currentStep = 1;
-        priceHistory = new double[Steps];
-        priceHistory[0] = price;
+        priceHistory.clear();
+        priceHistory.add(currentPrice);
     }
 
     public void calculateNewPrice() {
@@ -49,13 +58,14 @@ public class StockParameters {
             return;
         }
 
-        double yDiff = targetPrice - priceHistory[currentStep-1];
+        double yDiff = targetPrice - priceHistory.get(currentStep-1);
         double yStep = yDiff / (Steps - currentStep);
-        double yRand = random.nextDouble() * 2 * yNoise*noise - yNoise*noise;
+        double yRand = random.nextDouble() * 2 * yNoise - yNoise;
         if (this.noise == 0) {
             yRand = 0;
         }
-        priceHistory[currentStep] = priceHistory[currentStep-1] + yStep + yRand;
+        priceHistory.add(currentPrice + yStep + yRand);
+        currentPrice = priceHistory.get(currentStep);
         currentStep++;
         for (Player all : Bukkit.getOnlinePlayers()) {
             all.sendMessage("New price: " + getCurrentPrice() + " Iteration: " + (currentStep-1));
@@ -63,7 +73,7 @@ public class StockParameters {
     }
 
     public BigDecimal getCurrentPrice() {
-        return BigDecimal.valueOf(priceHistory[currentStep-1]).setScale(5, RoundingMode.HALF_UP);
+        return BigDecimal.valueOf(currentPrice).setScale(5, RoundingMode.HALF_UP);
     }
 
 }

@@ -1,7 +1,6 @@
 package de.nikho2000.mcstockmarket.depots;
 
-import de.nikho2000.mcstockmarket.stocks.Stock;
-import de.nikho2000.mcstockmarket.stocks.StockType;
+import de.nikho2000.mcstockmarket.stocks.StockEnum;
 import org.bukkit.entity.Player;
 
 import java.math.BigDecimal;
@@ -13,10 +12,10 @@ public class Depot {
 
     private final UUID id;
     private final Player owner;
-    private Map<Stock, BigDecimal> stocks;
+    private Map<StockEnum, BigDecimal> stocks;
     private List<Transaction> transactions;
 
-    public Depot(Player owner, UUID id , Map<Stock, BigDecimal> stocks) {
+    public Depot(Player owner, UUID id , Map<StockEnum, BigDecimal> stocks) {
         this.owner = owner;
         this.id = id;
         this.stocks = stocks;
@@ -45,26 +44,26 @@ public class Depot {
         return 0;
     }
 
-    public double getPercentageOfStock(Stock type) {
+    public double getPercentageOfStock(StockEnum type) {
 
         // Calculate the percentage of the Depot value that is made up of Money for every transaction in the Depot
 
         return 0;
     }
 
-    public Map<Stock, BigDecimal> getStocks() {
+    public Map<StockEnum, BigDecimal> getStocks() {
         return stocks;
     }
 
-    public void setStocks(Map<Stock, BigDecimal> stocks) {
+    public void setStocks(Map<StockEnum, BigDecimal> stocks) {
         this.stocks = stocks;
     }
 
-    public void setStock(Stock stock, BigDecimal amount) {
+    public void setStock(StockEnum stock, BigDecimal amount) {
         stocks.put(stock, amount);
     }
 
-    public void addStock(Stock stock, BigDecimal amount) {
+    public void addStock(StockEnum stock, BigDecimal amount) {
         if (stocks.containsKey(stock)) {
             stocks.put(stock, stocks.get(stock).add(amount));
         } else {
@@ -72,7 +71,7 @@ public class Depot {
         }
     }
 
-    public void removeStock(Stock stock, BigDecimal amount) {
+    public void removeStock(StockEnum stock, BigDecimal amount) {
         if (stocks.containsKey(stock)) {
             stocks.put(stock, stocks.get(stock).subtract(amount));
         } else {
@@ -80,7 +79,7 @@ public class Depot {
         }
     }
 
-    public BigDecimal getStockAmount(Stock stock) {
+    public BigDecimal getStockAmount(StockEnum stock) {
         return stocks.getOrDefault(stock, BigDecimal.ZERO);
     }
 

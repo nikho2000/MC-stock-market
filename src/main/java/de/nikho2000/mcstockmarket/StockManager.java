@@ -1,72 +1,107 @@
 package de.nikho2000.mcstockmarket;
 
-import de.nikho2000.mcstockmarket.company.FictionalCompany;
+import de.nikho2000.mcstockmarket.events.CompanyEvents;
+import de.nikho2000.mcstockmarket.events.GlobalEvents;
+import de.nikho2000.mcstockmarket.events.NationalEvents;
 import de.nikho2000.mcstockmarket.stocks.Stock;
-import de.nikho2000.mcstockmarket.stocks.StockParameters;
 import org.bukkit.Bukkit;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.util.*;
 
 public class StockManager {
 
-    private final List<Stock> stocks = new ArrayList<>();
-    private final Map<Stock, FictionalCompany> fictionalCompanies = new HashMap<>();
-    private final Map<Stock, StockParameters> stockPrices = new HashMap<>();
+    private final List<Stock> stocks;
+    private final List<CompanyEvents> companyEvents = Arrays.asList(CompanyEvents.values());
+    private final List<NationalEvents> nationalEvents = Arrays.asList(NationalEvents.values());
+    private final List<GlobalEvents> globalEvents = Arrays.asList(GlobalEvents.values());
     private int stockChange;
     private int stockPrice;
+    private int tick = 0;
 
-    public StockManager() {
+    public StockManager(List<Stock> stocks) {
+        this.stocks = stocks;
         loadStocks();
-        loadFictionalCompanies();
-        calucateStockPrices();
+        calcuateStockPrices();
         calculateStockChange();
     }
 
     private void loadStocks() {
-        stockPrices.put(Stock.CREEPERIUM, new StockParameters(50, 65, 30, 1));
+
     }
 
-    private void loadFictionalCompanies() {
-        fictionalCompanies.put(Stock.CREEPERIUM, new FictionalCompany(Stock.CREEPERIUM, 10000, 100000, 20, 0.2, 80));
+    private void loadEvents() {
+        // TODO
+    }
+
+    public BigDecimal getStockPrice(Stock stock) {
+        return stock.getParameters().getCurrentPrice();
+    }
+
+    public void closeStockMarket() {
+        Bukkit.getScheduler().cancelTask(stockChange);
+        Bukkit.getScheduler().cancelTask(stockPrice);
     }
 
     /**
      * Calculates every two seconds a new Price for every Stock
      */
-    private void calucateStockPrices() {
+    private void calcuateStockPrices() {
         stockPrice = Bukkit.getScheduler().scheduleAsyncRepeatingTask(MC_stock_market.getInstance(), () -> {
-            for (Stock stock : stockPrices.keySet()) {
-                StockParameters stockParameters = stockPrices.get(stock);
-                stockParameters.calculateNewPrice();
+            for (Stock stock : stocks) {
+                stock.getParameters().calculateNewPrice();
             }
-        }, 0L, 40L);
+        }, 0L, 4L);
     }
 
     /**
      * Calculates every minute a new Percentage goal for every Stock, that the Stock reaches within the next minute
      */
     private void calculateStockChange() {
+        Random random = new Random();
         stockChange = Bukkit.getScheduler().scheduleAsyncRepeatingTask(MC_stock_market.getInstance(), () -> {
-            for (Stock stock : stockPrices.keySet()) {
-                StockParameters stockParameters = stockPrices.get(stock);
-                FictionalCompany fictionalCompany = fictionalCompanies.get(stock);
-                Random random = new Random();
-                double chance = random.nextDouble(0, 5);
-                double noice = random.nextDouble();
-                stockParameters.reset(stockParameters.getCurrentPrice().doubleValue(),
-                        stockParameters.getCurrentPrice().doubleValue() * fictionalCompany.buySellRandom(), noice*chance);
+
+            tick++;
+
+            for (Stock stock : stocks) {
+                switch (stock.getType()) {
+                    case SHARE:
+                        stock.getParameters().changeParameters(
+                                stock.getParameters().getCurrentPrice().doubleValue() *
+                                        stock.getCompany().buySellRandom(),
+                                random.nextDouble()*random.nextDouble(0, 5));
+                        break;
+                    case CRYPTO:
+
+                        break;
+                    case ETF:
+
+                        break;
+                    case RESOURCE:
+
+                        break;
+                }
             }
-        }, 20*60L, 20*60L);
+
+            if ((tick%60) == 0) {
+
+            }
+            if ((tick%3601) == 0) {
+
+            }
+            if ((tick%14401) == 0) {
+
+            }
+            if ((tick%86401) == 0) {
+                tick = 0;
+            }
+        }, 20*6L, 20*6L);
+
     }
 
-    public BigDecimal getStockPrice(Stock stock) {
-        return stockPrices.get(stock).getCurrentPrice();
-    }
+    private void triggerCompanyEvent() {
 
-    public void closeStockMarket() {
-        Bukkit.getScheduler().cancelTask(stockChange);
-        Bukkit.getScheduler().cancelTask(stockPrice);
     }
 
 }

@@ -1,56 +1,59 @@
 package de.nikho2000.mcstockmarket.stocks;
 
-public enum Stock {
-    /**
-     * A lot of Stocks that are currently hardcoded. This will maybe be changed in the future.
-     */
-    CRAFTSOTF("Craftsotf Inc.", "CSI", StockType.SHARE),
-    DIAMONDDIGGERS("Diamond Diggers Inc.", "DDI", StockType.SHARE),
-    REDSTONEROBOTICS("Redstone Robotics Ltd.", "RRL", StockType.SHARE),
-    ENDERPEARLEXPRESS("Enderpearl Express", "EPE", StockType.SHARE),
-    CROPCORP("Crop Corp Ltd.", "CCL", StockType.SHARE),
-    BLOCKSTREAM("Blockstream Inc.", "BSI", StockType.SHARE),
-    MINEBOOK("Minebook Holdings", "MBH", StockType.SHARE),
-    ENDERTECH("Endertech Corp.", "ETC", StockType.SHARE),
-    ENCHANTMENTENTERPRISES("Enchantment Enterprises", "EEE", StockType.SHARE),
-    BEACONBANK("Beacon Bank", "BEB", StockType.SHARE),
-    MSCIVILLAGE("MSCI Village", "Index", StockType.ETF),
-    SANDPCRAFTING("S&P Crafting", "Index", StockType.ETF),
-    VILLAGEVANGUARD("Village Vanguard", "Index", StockType.ETF),
-    REDSTONETECHNOLOGIES("Redstone Technologies", "Index", StockType.ETF),
-    BIOMEBILDERS("Biome Builders", "Index", StockType.ETF),
-    NETHERNEXUS("Nether Nexus", "Index", StockType.ETF),
-    ENDEREXCHANGE("Ender Exchange", "Index", StockType.ETF),
-    OVERWORLDINDEX("Overworld Index", "Index", StockType.ETF),
-    PIXELREALMS("Pixel Realms", "Index", StockType.ETF),
-    ENDCOIN("Endcoin", "ENC", StockType.CRYPTO),
-    CREEPERIUM("Creeperium", "CRC", StockType.CRYPTO),
-    MINECOIN("Minecoin", "MNC", StockType.CRYPTO),
-    DIAMONDFORGE("Diamondforge", "DFG", StockType.CRYPTO),
-    ENCHANTX("EnchantX", "ENX", StockType.CRYPTO),
-    SLIMECORE("Slimecore", "SLC", StockType.CRYPTO),
-    BEACONBOOST("Beaconboost", "BBT", StockType.CRYPTO);
+import org.bukkit.Bukkit;
+
+public class Stock {
 
     private final String name;
     private final String shortName;
     private final StockType type;
+    private final StockParameters parameters;
+    private final FictionalCompany company;
 
-    Stock(String name, String shortName, StockType type) {
+    public Stock(String name, String shortName, StockType type, StockParameters parameters) {
+        this(name, shortName, type, parameters, null);
+    }
+
+    public Stock(String name, String shortName, StockType type, StockParameters parameters, FictionalCompany company) {
         this.name = name;
         this.shortName = shortName;
         this.type = type;
-    }
+        this.parameters = parameters;
+        if (company != null) {
+            if (type == StockType.SHARE) {
+                this.company = company;
+            } else {
+                Bukkit.getLogger().warning("Company was set for " +
+                        name + " but type is not SHARE. Company will be ignored.");
+                this.company = null;
+            }
+        } else {
+            if (type == StockType.SHARE) {
+                Bukkit.getLogger().warning("Company was not set for " +
+                        name + " but type is SHARE.");
+                Bukkit.getLogger().warning(
+                        "If this is the first start of the Plugin, you can ignore this message.\n" +
+                        "A new company will be created ...\n" +
+                        "The parameters of the company will be set to the default values" +
+                        "and can be changed in the plugins/MC_Stock_Manager/stocks.json file.");
+                this.company = new FictionalCompany(20000, 2000000, 50, 0.2, 50);
+            } else {
+                this.company = null;
+            }
+        }
 
-    public String getName() {
-        return name;
-    }
-
-    public String getShortName() {
-        return shortName;
     }
 
     public StockType getType() {
         return type;
+    }
+
+    public StockParameters getParameters() {
+        return parameters;
+    }
+
+    public FictionalCompany getCompany() {
+        return company;
     }
 
 }
